@@ -1,0 +1,25 @@
+#|
+5.1  arg-max
+|#
+(define (arg-max fun lst)
+  (cond
+    ((null? (cdr lst)) (fun (car lst)))
+    ((< (fun (car lst)) (arg-max fun (cdr lst))) (arg-max fun (cdr lst)))
+    (else (fun (car lst)))
+  )
+)
+
+#|
+5.2  zip
+|#
+
+#|
+5.3  unzip
+|#
+(define (unzip lst n)
+  (cond
+    ((and (= n 0) (null? lst)) '())
+    ((= n 0) (car lst))
+    (else (unzip (cdr lst) (- n 1)))
+  )
+)
