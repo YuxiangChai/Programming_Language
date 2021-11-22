@@ -1,3 +1,5 @@
+(* Problem 4 *)
+
 (* Question 1 *)
 
 fun alternate [] = 0
@@ -120,3 +122,92 @@ getitem2 (SOME 5) [1,2,3,4];
 getitem2 NONE [1,2,3];
 getitem2 (SOME 5) [];
 getitem2 (SOME 5) ([] : int list);
+
+(*  *)
+(*  *)
+(*  *)
+(* Problem 5 *)
+
+signature DICT =
+  sig
+    type key = string                 (* concrete type *)
+    type 'a entry = key * 'a          (* concrete type *)
+  
+    type 'a dict                      (* abstract type *)
+  
+    val empty : 'a dict
+    val lookup : 'a dict -> key -> 'a option
+    val insert : 'a dict * 'a entry -> 'a dict
+  end;
+
+
+structure Trie :> DICT = 
+  struct
+    type key = string
+    type 'a entry = key * 'a
+  
+    datatype 'a trie = 
+      Root of 'a option * 'a trie list
+    | Node of 'a option * char * 'a trie list
+  
+    type 'a dict = 'a trie
+  
+    val empty = Root(NONE, nil)
+  
+    (* val lookup: 'a dict -> key -> 'a option *)
+    (* tries to find the key in the trie,
+    * returns NONE if key is not found in the trie, otherwise
+    * returns a SOME(value) corresponding to this key *)
+    fun lookup trie key = 
+      (* function helper1 is going to traverse throught a given list 
+      and find the next corresponding node
+      function helper is going to give the result of a query which will call helper1 *)
+      let 
+        fun helper1 (nil, _) = NONE
+          | helper1 (_, nil) = NONE
+          | helper1 ((Node (v, ch, lst))::ns, k::ks) = 
+              if ch = k
+              then helper (Node (v, ch, lst), ks)
+              else helper1 (ns, k::ks)
+        
+        and helper (Root (v, lst), nil) = v
+          | helper (Root (_, lst), w) = helper1 (lst, w)
+          | helper (Node (v, ch, lst), nil) = v
+          | helper (Node (_, _, lst), w) = helper1 (lst, w);
+      in
+        helper (trie, explode (key))
+      end;
+  
+    (* val insert: 'a dict * 'a entry -> 'a dict *)
+    (* Inserts the key and value in the trie *)
+    (* If the key is nil, assume that the Root is the destination *)
+    fun insert (trie, (key, value)) = 
+      (* helper1 is going to add the given key and value to the list
+      and helper is going to create nodes *)
+      let
+        fun helper1 (nil, k::nil, v) = [Node (SOME v, k, nil)]
+          | helper1 (nil, k::ks, v) = [Node (NONE, k, helper1 (nil, ks, v))]
+          | helper1 ((Node (v1, ch, lst))::ns, k::ks, v) = 
+              if ch = k
+              then (helper (Node (v1, ch, lst), ks, v))::ns
+              else (Node (v1, ch, lst))::(helper1 (ns, k::ks, v))
+        
+        and helper (Root (_, lst), nil, v) = Root (SOME v, lst)
+          | helper (Root (v1, lst), k, v) = Root (v1, helper1 (lst, k, v))
+          | helper (Node (_, ch, lst), nil, v) = Node (SOME v, ch, lst)
+          | helper (Node (v1, ch, lst), k, v) = Node (v1, ch, helper1 (lst, k, v));
+      in
+        helper (trie, explode (key), value)
+      end;
+  end
+
+(* I don't know why the compiler would pop the warning: match nonexhaustive. I think I considered every case. *)
+
+
+(* val newTrie = Trie.empty; *)
+(* val trie1 = Trie.insert(newTrie, ("badge", 2)); *)
+(* val trie2 = Trie.insert(trie1, ("bad", 1)); *)
+(* val trie3 = Trie.insert(trie2, ("car", 3)); *)
+(* val v1 = Trie.lookup trie3 "badge"; *)
+(* val v2 = Trie.lookup trie3 "badg"; *)
+(* val v3 = Trie.lookup trie3 "car"; *)
