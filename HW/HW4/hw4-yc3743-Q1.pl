@@ -55,5 +55,7 @@ grandfather(X,Y) :- male(X), parent(X,Z), parent(Z,Y).
 
 % question 4 rules.
 
-uncle(X, Y) :- male(X), grandfather(Z, Y), parent(Z, X).
-aunt(X, Y) :- \+ male(X), grandfather(Z, Y), parent(Z, X).
+grandparent(X, Y) :- parent(X, Z), parent(Z, Y).
+
+uncle(X, Y) :- male(X), grandparent(Z, Y), parent(Z, X).
+aunt(X, Y) :- \+ male(X), grandparent(Z, Y), parent(Z, X).
